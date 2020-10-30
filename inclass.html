@@ -1,0 +1,207 @@
+<html>
+	<head>
+		<title>Timers w/ Javascript</title>
+		<style>
+			.circle {
+				width: 200px;
+				height: 200px;
+				border-radius: 100px;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
+			
+			.red {
+				background-color: red;
+			}
+			
+			.blue {
+				background-color: blue;
+			}
+			
+			// replaced by jquery .hide()
+			/*#playAgain {
+				display: none;
+			}*/
+		</style>
+	</head>
+	<body>
+		<div id="wrapper">
+		
+			<p id='special'>This is a very special paragraph!</p>
+			<p>High score: <span id="highScore"></span></p>
+			<p>Points: <span id='points'></span></p>
+			<p>Timer: <span id="currentTimeRemaining"></span></p>
+
+			<button id='playAgain'>Play again?</button>
+		
+			<div class="circle red"></div>
+			<div class="circle blue"></div>
+			<div class="circle blue"></div>
+	
+		</div>
+		
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script>
+			var currentPoints = 0;
+			var circles = $(".circle");
+			var points = $("#points");
+			var timeRemaining = $("#currentTimeRemaining");
+			var playAgainBtn = $("#playAgain");
+			var highScore = $("#highScore");
+			var intervalId;
+			var secondsRemaining = 10;
+				
+			function addEventListenersToCircles() {
+				$(circles).each(function() {
+					//console.log(this);
+					$(this).click(determinePoints);
+				});
+			}
+			
+			$(playAgainBtn).click(startGame);
+						
+			function moveCircles() {
+				$(circles).each(function() {
+				
+					// generate random numbers
+					var random_x = Math.floor(Math.random() * 100);
+					var random_y = Math.floor(Math.random() * 100);
+					
+					// apply them as CSS %s to circle 
+					$(this).css('top', `${random_y}%`).css('left', `${random_x}%`);
+				
+					//console.log(this);
+				});
+			}
+			
+			function determinePoints(event) {
+				// need to figure out if we clicked a red
+				// circle or a blue circle
+				console.log("CLICKED A CIRCLE", event.target);
+				
+				if( $(event.target).hasClass('blue') ) { 
+					// you get 5 points 
+					updatePoints(5);
+				} else {
+					// you get 10 points
+					updatePoints(10);
+				}				
+			}
+			
+			function updatePoints(newPoints){
+				console.log("About to get new points!", newPoints);
+			
+				// currentPoints = currentPoints + newPoints;
+				currentPoints += newPoints;
+				
+				$(points).text(currentPoints);
+				
+				// check localStorage for points, update if you have more
+				// add a timer to the game using setInterval and a variable for seconds elapsed
+				// make circles disappear after they've been clicked
+				// replace circles with images 
+				
+				checkGameCondition();
+			}
+			
+			function checkGameCondition() {
+				// if the timer is done, the game is over
+				if(secondsRemaining <= 0) {
+					clearInterval(intervalId);
+					$(".circle").off();
+					$(playAgainBtn).show();
+					
+					checkHighScore();
+				}
+			}
+			
+			function changeTimer() {
+				// 1. remove 1 from secondsRemaining
+				secondsRemaining = secondsRemaining - 1;
+				
+				// 2. update UI (user interface)
+				// TODO refactor this UI update into a function that can be used elsewhere
+				$(timeRemaining).text(secondsRemaining);
+
+				// 3. call the checkGameCondition function
+				checkGameCondition();
+			}
+			
+			function checkHighScore() {
+				if(localStorage.getItem('score')) {
+					// we have a previous highscore and need to check
+					if(currentPoints > localStorage.getItem('score')) {
+						console.log("You got a high score!");
+						localStorage.setItem("score", currentPoints);
+						$(highScore).text(currentPoints);
+					}
+					
+				} else {
+					localStorage.setItem("score", currentPoints);
+				}
+			}	
+			
+			
+			// THINGS THAT NEED TO HAPPEN IN ORDER TO PLAY THE GAME
+			// 1. start circles moving
+			// 2. set timer to 10 seconds
+			// 3. reset score to 0
+			
+			function startGame() {
+				moveCircles();
+				$(playAgainBtn).hide();
+
+				// 2.
+				secondsRemaining = 10; 
+				$(timeRemaining).text(secondsRemaining);
+			
+				// 1.
+				// https://www.w3schools.com/jsref/met_win_setinterval.asp
+				// The setInterval() method will continue calling the function until clearInterval() is called, or the window is closed.
+				// The ID value returned by setInterval() is used as the parameter for the clearInterval() method.
+				
+				intervalId = setInterval(function(){
+					moveCircles();
+					changeTimer();
+				}, 1000);
+				
+				// This code waits 4s (4000ms) to execute the anonymous function code
+				// setTimeout(function() {
+				// 	alert('Game over!');
+				// }, 4000);
+				
+			
+				// 3.
+				currentPoints = 0; 
+				$(points).text(currentPoints);
+
+				
+				// 4. add/re-add event listeners
+				addEventListenersToCircles();
+				
+				// 5. display high score
+				var localStorageScore = localStorage.getItem('score');
+				$(highScore).text(localStorageScore);
+			}
+	
+			startGame();
+	
+			// old busted way 
+			//var special_paragraph = document.getElementById("special");
+			//special_paragraph.innerText = "Text has been changed!";
+			//special_paragraph.style.color = "red";
+			//special_paragraph.style.fontSize = "200px";
+			
+			// new hotness
+			//var special_paragraph = $("#special");
+			//$(special_paragraph)
+			//	.text('Text has been changed by jQuery!')
+			//	.css('color', 'red')
+			//	.css('font-size', '200px');
+				
+			
+			
+		</script>
+	</body>
+</html>
